@@ -1,0 +1,1175 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Mi Casa Verde" model="Vera 2" alias="Mi Casas Verde Vera 3, Mi Casa Verde VeraLite" device_class="Security_system" unique_identifier="none" minimum_component_engine_version="0" rpm_xml_version="1.11">
+    <notes> 
+        The user based login service of this profile is for a Kwikset lock controlled by the Mi Casa Verde Vera 2, it may work for other locks (schlage) as well.
+        
+        Vera 2 Setup:
+        Go to the IP Address of the Vera 2 (192.168.81.1 default) to access the Vera2 webpage
+        You can connect to the Vera2 through its ad hoc wireless network with network name vera_######
+        You will have to configure and connect Eth1 port of the Vera 2 to the network with Savant for control
+        
+        Device Numbers given by the Vera 2 are used for the Security Data Tables in Blueprint
+        This can be found on the Vera2 webpage under dashboard > devices > "wrench icon" > settings tab  > Device #
+        
+            Notes on z-wave pairing kwikset lock with the Vera 2
+            http://youtu.be/z4NlUY3quGs
+            
+            1. Put vera2 into include mode, there is a wizard on the vera2 webpage 
+            2. Bring the Vera 2 and the Kwikset lock within 3 feet of each other
+            
+            --------------------KWIKSET Setup ---------------
+            3. Remove the battery in the kwikset lock
+            4. Press the large program button 3 times
+            5. Reinsert the battery in the kwikset lock
+            6. Press the upper left button on the kwikset lock
+            
+            7. The lock should be recognized on the vera2 webpage
+            --------------------SCHLAGE Setup ---------------
+            
+            2. Bring the Vera 2 and the Schlage lock within 3 feet of each other 
+            3. Put Schlage lock into enrollment mode
+                - enter programming code 6 digits
+                - wait for 3 lights and 3 beeps
+                - press schlage + 0
+                - schlage blinking green success
+                
+            ------------------Add z-wave with Vera 2 Already setup ------------
+            1. Go To add/Remove devices -> Zwave -> Next
+            2. Scroll Down to ANy Type of devices you can bring close -> Go
+            3. Z-Wave light will begin to blink
+            4. Z-Wave light flashes rapdily when the device is sucessfully added.
+                 
+         
+         Blueprint Setup:
+         Before testing this profile, verify that the locks are already on the Vera 2 z-wave network and controllable through the Vera 2 web interface.
+         The IP address on the wire in BP should be the IP address of the Vera 2 eth1 port.
+         
+         This profile will generate a user based login security service to populate some UI screen with default control and feedback.
+         There should be a partition and a zone for each lock using the device number from the vera 2 as the address for the partition and zone number.
+         You could however just have 1 partition per lock with no zones.
+         
+		====================== Change Log ==================
+		Version: 1.11 Change: Added CurrentPartitionArmingStatus  Risk: Low Importance: Helpful
+		Version: 1.10 Change: Added Temp Sensor Support  Risk: Low Importance: Helpful
+		Version: 1.9 Change: additional HVAC status message for tstats that have different feedback  Risk: Low Importance: Helpful
+		Version: 1.8 Change: Version Number bump to support new Savant Revisioning Scheme.  Risk: Low Importance: Forced
+    </notes>
+    <control_interfaces preferred="ip">
+        <ip port="49451" response_time_length_ms="3000" name_on_component="ETHERNET" protocol="http">
+            <receive_start_condition type="character">&lt;root</receive_start_condition>
+            <receive_end_condition test_condition="data" type="character">&lt;/root></receive_end_condition>
+        </ip>
+    </control_interfaces>
+    <media_interfaces>
+        <data name_on_component="Ethernet">
+            <combined_media>
+                <data_media type="ethernet"></data_media>
+                <control port="49451"></control>
+            </combined_media>
+        </data>
+        <internal name_on_component="DoorLockController">
+            <environmental_media></environmental_media>
+            <resource resource_type="ENV_USERLOGIN_SECURITYSYSTEMCONTROLLER_SOURCE"></resource>
+        </internal>
+        <internal name_on_component="HVAC Controller">
+            <environmental_media></environmental_media>
+            <resource resource_type="ENV_HVACCONTROLLER_SOURCE"></resource>
+        </internal>
+        <internal name_on_component="Lighting Controller">
+            <environmental_media></environmental_media>
+            <resource resource_type="ENV_LIGHTINGCONTROLLER_SOURCE"></resource>
+        </internal>
+    </media_interfaces>
+    <state_variable_list>
+        <state_variable name="isDoorLocked" owning_logical_component="Security_system" state_center_type="boolean" state_center_binding="isDoorLocked">0</state_variable>
+        <state_variable name="Partition1Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_1">Lock 1</state_variable>
+        <state_variable name="Partition2Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_2">Lock 2</state_variable>
+        <state_variable name="Partition3Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_3">Lock 3</state_variable>
+        <state_variable name="Partition4Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_4">Lock 4</state_variable>
+        <state_variable name="Partition5Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_5">Lock 5</state_variable>
+        <state_variable name="Partition6Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_6">Lock 6</state_variable>
+        <state_variable name="Partition7Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_7">Lock 7</state_variable>
+        <state_variable name="Partition8Label" owning_logical_component="Security_system" state_center_type="string" state_center_binding="CurrentPartitionLabel_8">Lock 8</state_variable>
+        <state_variable name="CurrentWorkingHeatPoint" min_value="40" max_value="90" state_center_type="integer" owning_logical_component="Security_system" state_center_binding="CurrentWorkingHeatPoint" receive_updates_from_state_center="yes">40</state_variable>
+        <state_variable name="CurrentWorkingCoolPoint" min_value="50" max_value="99" state_center_type="integer" owning_logical_component="Security_system" state_center_binding="CurrentWorkingCoolPoint" receive_updates_from_state_center="yes">50</state_variable>
+    </state_variable_list>
+    <logical_component logical_component_name="Security_system">
+        <!--    LIGHTING -->
+        <!--  http://10.5.200.253:49451/data_request?id=lu_action&DeviceNum=8&action=SetLoadLevelTarget&serviceId=urn:upnp-org:serviceId:Dimming1&newLoadlevelTarget=20 -->
+        <!--  http://10.5.200.253:49451/data_request?id=lu_action&DeviceNum=6&action=SetTarget&serviceId=urn:upnp-org:serviceId:SwitchPower1&newTargetValue=0 -->
+        <!-- HVAC -->
+        <!-- http://10.5.200.253:49451/data_request?id=action&DeviceNum=10&action=SetCurrentSetpoint&serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&NewCurrentSetpoint=80 -->
+        <!-- http://10.5.200.253:49451/data_request?id=action&DeviceNum=10&action=SetCurrentSetpoint&serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&NewCurrentSetpoint=60 -->
+        <!-- http://10.5.200.253:49451/data_request?id=action&DeviceNum=10&action=SetModeTarget&serviceId=urn:upnp-org:serviceId:HVAC_UserOperatingMode1&NewModeTarget=CoolOn,HeatOn,AutoChangeOver,Off -->
+        <!-- http://10.5.200.253:49451/data_request?id=action&DeviceNum=10&action=SetMode&serviceId=urn:upnp-org:serviceId:HVAC_FanOperatingMode1&NewMode=ContinuousOn -->
+        <implementation>
+            <internal name_on_component="DoorLockController"></internal>
+            <data name_on_component="Ethernet"></data>
+        </implementation>
+        <implementation>
+            <internal name_on_component="HVAC Controller"></internal>
+            <data name_on_component="Ethernet"></data>
+        </implementation>
+        <implementation>
+            <internal name_on_component="Lighting Controller"></internal>
+            <data name_on_component="Ethernet"></data>
+        </implementation>
+        <status_messages>
+            <status_message name="LockStatus">
+                <data type="character" terminator_type="character" terminator="Device_Num_">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator=" ">
+                    <update state="DeviceNumber" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:micasaverde-com:serviceId:DoorLock1&quot; variable=&quot;Status&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <data_map match_required="yes">
+                        <map key="0">
+                            <update state="isDoorLocked" type="boolean">false</update>
+                            <update state="IsZoneBypassed" type="boolean">true</update>
+                            <update state="CurrentPartitionStatus" type="string">Unlocked</update>
+                            <update state="CurrentZoneStatus" type="string">Unlocked</update>
+                        </map>
+                        <map key="1">
+                            <update state="isDoorLocked" type="boolean">true</update>
+                            <update state="IsZoneBypassed" type="boolean">false</update>
+                            <update state="CurrentPartitionStatus" type="string">Locked</update>
+                            <update state="CurrentZoneStatus" type="string">Locked</update>
+                        </map>
+                    </data_map>
+                </data>
+                <data type="character" terminator_type="end_of_data">
+                    <update state="ThrownOutEnd" type="string"></update>
+                </data>
+                <append_data_to_state_names state="DeviceNumber" note="Device Number"></append_data_to_state_names>
+            </status_message>
+            <status_message name="HVACStatus">
+                <data type="character" terminator_type="character" terminator="Device_Num_">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator=" ">
+                    <update state="DeviceNumber" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:HVAC_FanOperatingMode1&quot; variable=&quot;ModeStatus&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <data_map match_required="yes">
+                        <map key="Auto">
+                            <update state="ThermostatFanMode" type="string">AUTO</update>
+                            <update state="IsThermostatCurrentFanModeAuto" type="boolean">true</update>
+                            <update state="IsThermostatCurrentFanModeOn" type="boolean">false</update>
+                        </map>
+                        <map key="ContinuousOn">
+                            <update state="ThermostatFanMode" type="string">ON</update>
+                            <update state="IsThermostatCurrentFanModeAuto" type="boolean">false</update>
+                            <update state="IsThermostatCurrentFanModeOn" type="boolean">true</update>
+                        </map>
+                    </data_map>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:HVAC_UserOperatingMode1&quot; variable=&quot;ModeStatus&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <data_map match_required="yes">
+                        <map key="CoolOn">
+                            <update state="ThermostatMode" type="string">COOL</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">true</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">false</update>
+                        </map>
+                        <map key="HeatOn">
+                            <update state="ThermostatMode" type="string">HEAT</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">true</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">false</update>
+                        </map>
+                        <map key="Off">
+                            <update state="ThermostatMode" type="string">OFF</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">true</update>
+                        </map>
+                        <map key="AutoChangeOver">
+                            <update state="ThermostatMode" type="string">AUTO</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">true</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">false</update>
+                        </map>
+                    </data_map>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSensor1&quot; variable=&quot;CurrentTemperature&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="ThermostatCurrentTemperature" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="ThermostatCurrentHeatPoint" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="ThermostatCurrentCoolPoint" type="string"></update>
+                </data>
+                <data type="character" terminator_type="end_of_data">
+                    <update state="ThrownOutEnd" type="string"></update>
+                </data>
+                <append_data_to_state_names state="DeviceNumber" note="Device Number"></append_data_to_state_names>
+            </status_message>
+            <status_message name="HVACStatus2">
+                <data type="character" terminator_type="character" terminator="Device_Num_">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator=" ">
+                    <update state="DeviceNumber" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:HVAC_FanOperatingMode1&quot; variable=&quot;Mode&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <data_map match_required="yes">
+                        <map key="Auto">
+                            <update state="ThermostatFanMode" type="string">AUTO</update>
+                            <update state="IsThermostatCurrentFanModeAuto" type="boolean">true</update>
+                            <update state="IsThermostatCurrentFanModeOn" type="boolean">false</update>
+                        </map>
+                        <map key="ContinuousOn">
+                            <update state="ThermostatFanMode" type="string">ON</update>
+                            <update state="IsThermostatCurrentFanModeAuto" type="boolean">false</update>
+                            <update state="IsThermostatCurrentFanModeOn" type="boolean">true</update>
+                        </map>
+                    </data_map>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:HVAC_UserOperatingMode1&quot; variable=&quot;ModeStatus&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <data_map match_required="yes">
+                        <map key="CoolOn">
+                            <update state="ThermostatMode" type="string">COOL</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">true</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">false</update>
+                        </map>
+                        <map key="HeatOn">
+                            <update state="ThermostatMode" type="string">HEAT</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">true</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">false</update>
+                        </map>
+                        <map key="Off">
+                            <update state="ThermostatMode" type="string">OFF</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">true</update>
+                        </map>
+                        <map key="AutoChangeOver">
+                            <update state="ThermostatMode" type="string">AUTO</update>
+                            <update state="IsCurrentHVACModeHeat" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeCool" type="boolean">false</update>
+                            <update state="IsCurrentHVACModeAuto" type="boolean">true</update>
+                            <update state="IsCurrentHVACModeOff" type="boolean">false</update>
+                        </map>
+                    </data_map>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSensor1&quot; variable=&quot;CurrentTemperature&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="ThermostatCurrentTemperature" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="ThermostatCurrentHeatPoint" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="ThermostatCurrentCoolPoint" type="string"></update>
+                </data>
+                <data type="character" terminator_type="end_of_data">
+                    <update state="ThrownOutEnd" type="string"></update>
+                </data>
+                <append_data_to_state_names state="DeviceNumber" note="Device Number"></append_data_to_state_names>
+            </status_message>
+            <status_message name="HVACStatus3">
+                <!-- Temp Sensor -->
+                <data type="character" terminator_type="character" terminator="Device_Num_">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator=" ">
+                    <update state="DeviceNumber" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSensor1&quot; variable=&quot;CurrentTemperature&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="ThermostatCurrentTemperature" type="string"></update>
+                </data>
+                <data type="character" terminator_type="end_of_data">
+                    <update state="ThrownOutEnd" type="string"></update>
+                </data>
+                <append_data_to_state_names state="DeviceNumber" note="Device Number"></append_data_to_state_names>
+            </status_message>
+            <status_message name="DimmerStatus">
+                <data type="character" terminator_type="character" terminator="Device_Num_">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator=" ">
+                    <update state="DeviceNumber" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:SwitchPower1&quot; variable=&quot;Status&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <data_map match_required="yes">
+                        <map key="0">
+                            <update state="IsSwitchOn" type="boolean">false</update>
+                        </map>
+                        <map key="1">
+                            <update state="IsSwitchOn" type="boolean">true</update>
+                        </map>
+                    </data_map>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:Dimming1&quot; variable=&quot;LoadLevelTarget&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <update state="DimmerLevel" type="integer"></update>
+                </data>
+                <data type="character" terminator_type="end_of_data">
+                    <update state="ThrownOutEnd" type="string"></update>
+                </data>
+                <append_data_to_state_names state="DeviceNumber" note="Device Number"></append_data_to_state_names>
+            </status_message>
+            <status_message name="SwitchStatus">
+                <data type="character" terminator_type="character" terminator="Device_Num_">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator=" ">
+                    <update state="DeviceNumber" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:SwitchPower1&quot; variable=&quot;Target&quot; value=&quot;">
+                    <update state="ThrownOut" type="string"></update>
+                </data>
+                <data type="character" terminator_type="character" terminator="&quot;">
+                    <data_map match_required="yes">
+                        <map key="0">
+                            <update state="IsSwitchOn" type="boolean">false</update>
+                        </map>
+                        <map key="1">
+                            <update state="IsSwitchOn" type="boolean">true</update>
+                        </map>
+                    </data_map>
+                </data>
+                <data type="character" terminator_type="end_of_data">
+                    <update state="ThrownOutEnd" type="string"></update>
+                </data>
+                <append_data_to_state_names state="DeviceNumber" note="Device Number"></append_data_to_state_names>
+            </status_message>
+        </status_messages>
+        <resource_component_actions resource_type="ENV_USERLOGIN_SECURITYSYSTEMCONTROLLER_SOURCE">
+            <action name="ArmAlarmAway">
+                <action_argument name="PartitionNumber" note="Door Lock Device Number (This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #)"></action_argument>
+                <action_argument name="ZoneNumber" note="Not used"></action_argument>
+                <action_argument name="User" note="Not used "></action_argument>
+                <action_argument name="UserCode" note="Not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="PartitionNumber" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;serviceId=urn:micasaverde-com:serviceId:DoorLock1&amp;action=SetTarget&amp;newTargetValue=1</parameter>
+                        </parameter_list>
+                        <delay ms_delay="6000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="PartitionNumber" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="DisarmAlarm">
+                <action_argument name="PartitionNumber" note="Door Lock Device Number (This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #)"></action_argument>
+                <action_argument name="ZoneNumber" note="Not used"></action_argument>
+                <action_argument name="User" note="Not used "></action_argument>
+                <action_argument name="UserCode" note="Not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="PartitionNumber" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;serviceId=urn:micasaverde-com:serviceId:DoorLock1&amp;action=SetTarget&amp;newTargetValue=0</parameter>
+                        </parameter_list>
+                        <delay ms_delay="6000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="PartitionNumber" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="BypassZone">
+                <action_argument name="ZoneNumber" note="Door Lock Device Number (This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #)"></action_argument>
+                <action_argument name="PartitionNumber" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ZoneNumber" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;serviceId=urn:micasaverde-com:serviceId:DoorLock1&amp;action=SetTarget&amp;newTargetValue=0</parameter>
+                        </parameter_list>
+                        <delay ms_delay="6000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ZoneNumber" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="UnBypassZone">
+                <action_argument name="ZoneNumber" note="Door Lock Device Number (This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #)"></action_argument>
+                <action_argument name="PartitionNumber" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ZoneNumber" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;serviceId=urn:micasaverde-com:serviceId:DoorLock1&amp;action=SetTarget&amp;newTargetValue=1</parameter>
+                        </parameter_list>
+                        <delay ms_delay="6000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ZoneNumber" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <entity name="Zone" address_components="1">
+                <security_zone_group_representation supports_bypass="yes">
+                    <status_valueSource name="CurrentZoneStatus">
+                        <unique_identifier name="DeviceNumber" address_component="1" format="%d"></unique_identifier>
+                    </status_valueSource>
+                    <label_valueSource name="CurrentZoneLabel">
+                        <unique_identifier name="DeviceNumber" address_component="1" format="%d"></unique_identifier>
+                    </label_valueSource>
+                    <bypass_release_action name="BypassZone"></bypass_release_action>
+                    <bypass_toggle_release_action name="UnBypassZone"></bypass_toggle_release_action>
+                    <bypass_toggleOnUsingState name="IsZoneBypassed">
+                        <unique_identifier name="DeviceNumber" address_component="1" format="%d"></unique_identifier>
+                    </bypass_toggleOnUsingState>
+                </security_zone_group_representation>
+                <query_status_with_action name="RequestLockStatus" period_ms="10000">
+                    <with_arg name="DeviceNumber" address_component="1"></with_arg>
+                </query_status_with_action>
+            </entity>
+            <entity name="Partition" address_components="1">
+                <security_partition_group_representation screen_unique_identifier_format="%d">
+                    <status_valueSource name="CurrentPartitionStatus">
+                        <unique_identifier name="DeviceNumber" address_component="1" format="%d"></unique_identifier>
+                    </status_valueSource>
+                    <label_valueSource name="CurrentPartitionLabel">
+                        <unique_identifier name="DeviceNumber" address_component="1" format="%d"></unique_identifier>
+                    </label_valueSource>
+                </security_partition_group_representation>
+                <query_status_with_action name="RequestLockStatus" period_ms="10000">
+                    <with_arg name="DeviceNumber" address_component="1"></with_arg>
+                </query_status_with_action>
+            </entity>
+        </resource_component_actions>
+        <resource_component_actions resource_type="ENV_HVACCONTROLLER_SOURCE">
+            <action name="SetCoolPointTemperature">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <action_argument name="CoolPointTemperature" note="Temperature Bound for Cool Operation in F"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetCurrentSetpoint&amp;serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&amp;NewCurrentSetpoint=</parameter>
+                            <parameter action_argument="CoolPointTemperature" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="DecreaseCoolPointTemperature">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="yes">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <response_codes>
+                            <rspmessage status="success" name="CoolPointStatus">
+                                <data type="character" terminator_type="character" terminator="Device_Num_">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator=" ">
+                                    <update state="DeviceNumber" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="&quot;">
+                                    <data_map match_required="no">
+                                        <convert output_format="%d">
+                                            <subtract>1</subtract>
+                                            <update state="CurrentWorkingCoolPoint" type="integer"></update>
+                                        </convert>
+                                    </data_map>
+                                </data>
+                                <data type="character" terminator_type="end_of_data">
+                                    <update state="ThrownOutEnd" type="string"></update>
+                                </data>
+                            </rspmessage>
+                        </response_codes>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetCurrentSetpoint&amp;serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&amp;NewCurrentSetpoint=</parameter>
+                            <parameter state_variable="CurrentWorkingCoolPoint" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="IncreaseCoolPointTemperature">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="yes">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <response_codes>
+                            <rspmessage status="success" name="CoolPointStatus">
+                                <data type="character" terminator_type="character" terminator="Device_Num_">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator=" ">
+                                    <update state="DeviceNumber" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="&quot;">
+                                    <data_map match_required="no">
+                                        <convert output_format="%d">
+                                            <add>1</add>
+                                            <update state="CurrentWorkingCoolPoint" type="integer"></update>
+                                        </convert>
+                                    </data_map>
+                                </data>
+                                <data type="character" terminator_type="end_of_data">
+                                    <update state="ThrownOutEnd" type="string"></update>
+                                </data>
+                            </rspmessage>
+                        </response_codes>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetCurrentSetpoint&amp;serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Cool&amp;NewCurrentSetpoint=</parameter>
+                            <parameter state_variable="CurrentWorkingCoolPoint" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SetHeatPointTemperature">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <action_argument name="HeatPointTemperature" note="Temperature Bound for Heat Operation in F"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetCurrentSetpoint&amp;serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&amp;NewCurrentSetpoint=</parameter>
+                            <parameter action_argument="HeatPointTemperature" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="DecreaseHeatPointTemperature">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="yes">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <response_codes>
+                            <rspmessage status="success" name="HeatPointStatus">
+                                <data type="character" terminator_type="character" terminator="Device_Num_">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator=" ">
+                                    <update state="DeviceNumber" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="&quot;">
+                                    <data_map match_required="no">
+                                        <convert output_format="%d">
+                                            <subtract>1</subtract>
+                                            <update state="CurrentWorkingHeatPoint" type="integer"></update>
+                                        </convert>
+                                    </data_map>
+                                </data>
+                                <data type="character" terminator_type="end_of_data">
+                                    <update state="ThrownOutEnd" type="string"></update>
+                                </data>
+                            </rspmessage>
+                        </response_codes>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetCurrentSetpoint&amp;serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&amp;NewCurrentSetpoint=</parameter>
+                            <parameter state_variable="CurrentWorkingHeatPoint" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="IncreaseHeatPointTemperature">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="yes">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <response_codes>
+                            <rspmessage status="success" name="HeatPointStatus">
+                                <data type="character" terminator_type="character" terminator="Device_Num_">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator=" ">
+                                    <update state="DeviceNumber" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&quot; variable=&quot;CurrentSetpoint&quot; value=&quot;">
+                                    <update state="ThrownOut" type="string"></update>
+                                </data>
+                                <data type="character" terminator_type="character" terminator="&quot;">
+                                    <data_map match_required="no">
+                                        <convert output_format="%d">
+                                            <add>1</add>
+                                            <update state="CurrentWorkingHeatPoint" type="integer"></update>
+                                        </convert>
+                                    </data_map>
+                                </data>
+                                <data type="character" terminator_type="end_of_data">
+                                    <update state="ThrownOutEnd" type="string"></update>
+                                </data>
+                            </rspmessage>
+                        </response_codes>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetCurrentSetpoint&amp;serviceId=urn:upnp-org:serviceId:TemperatureSetpoint1_Heat&amp;NewCurrentSetpoint=</parameter>
+                            <parameter state_variable="CurrentWorkingHeatPoint" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SetHVACModeAuto">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetModeTarget&amp;serviceId=urn:upnp-org:serviceId:HVAC_UserOperatingMode1&amp;NewModeTarget=AutoChangeOver</parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SetHVACModeCool">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetModeTarget&amp;serviceId=urn:upnp-org:serviceId:HVAC_UserOperatingMode1&amp;NewModeTarget=CoolOn</parameter>
+                        </parameter_list>
+                        <delay ms_delay="2000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SetHVACModeHeat">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetModeTarget&amp;serviceId=urn:upnp-org:serviceId:HVAC_UserOperatingMode1&amp;NewModeTarget=HeatOn</parameter>
+                        </parameter_list>
+                        <delay ms_delay="2000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SetHVACModeOff">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetModeTarget&amp;serviceId=urn:upnp-org:serviceId:HVAC_UserOperatingMode1&amp;NewModeTarget=Off</parameter>
+                        </parameter_list>
+                        <delay ms_delay="2000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SetFanModeOn">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetMode&amp;serviceId=urn:upnp-org:serviceId:HVAC_FanOperatingMode1&amp;NewMode=ContinuousOn</parameter>
+                        </parameter_list>
+                        <delay ms_delay="2000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SetFanModeAuto">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetMode&amp;serviceId=urn:upnp-org:serviceId:HVAC_FanOperatingMode1&amp;NewMode=Auto</parameter>
+                        </parameter_list>
+                        <delay ms_delay="2000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="UpdateHVACStatus">
+                <action_argument name="ThermostatAddress" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="ThermostatAddress2" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <entity name="Zone" address_components="1">
+                <screen_representation>
+                    <common_unique_identifier name="ThermostatAddress" address_component="1"></common_unique_identifier>
+                </screen_representation>
+                <query_status_with_action name="RequestHVACStatus" period_ms="0">
+                    <!-- At Startup -->
+                    <with_arg name="ThermostatAddress" address_component="1"></with_arg>
+                </query_status_with_action>
+                <query_status_with_action name="RequestHVACStatus" period_ms="600000">
+                    <!-- 10 minutes -->
+                    <with_arg name="ThermostatAddress" address_component="1"></with_arg>
+                </query_status_with_action>
+            </entity>
+        </resource_component_actions>
+        <resource_component_actions resource_type="ENV_LIGHTINGCONTROLLER_SOURCE">
+            <action name="SwitchOn">
+                <action_argument name="Address1" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="Address2" note="not used"></action_argument>
+                <action_argument name="Address3" note="not used"></action_argument>
+                <action_argument name="Address4" note="not used"></action_argument>
+                <action_argument name="Address5" note="not used"></action_argument>
+                <action_argument name="Address6" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="Address1" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetTarget&amp;serviceId=urn:upnp-org:serviceId:SwitchPower1&amp;newTargetValue=1</parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="Address1" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SwitchOff">
+                <action_argument name="Address1" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="Address2" note="not used"></action_argument>
+                <action_argument name="Address3" note="not used"></action_argument>
+                <action_argument name="Address4" note="not used"></action_argument>
+                <action_argument name="Address5" note="not used"></action_argument>
+                <action_argument name="Address6" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="Address1" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetTarget&amp;serviceId=urn:upnp-org:serviceId:SwitchPower1&amp;newTargetValue=0</parameter>
+                        </parameter_list>
+                        <delay ms_delay="200"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="Address1" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="DimmerSet">
+                <action_argument name="Address1" note="Device Number Assigned by the MCV"></action_argument>
+                <action_argument name="Address2" note="not used"></action_argument>
+                <action_argument name="Address3" note="not used"></action_argument>
+                <action_argument name="Address4" note="not used"></action_argument>
+                <action_argument name="Address5" note="not used"></action_argument>
+                <action_argument name="Address6" note="not used"></action_argument>
+                <action_argument name="DimmerLevel" note="Target Intensity (0 - 100) %"></action_argument>
+                <action_argument name="FadeTime" note="not used"></action_argument>
+                <action_argument name="DelayTime" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="Address1" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;action=SetLoadLevelTarget&amp;serviceId=urn:upnp-org:serviceId:Dimming1&amp;newLoadlevelTarget=</parameter>
+                            <parameter action_argument="DimmerLevel" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="20"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="Address1" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="10"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <entity name="Dimmer" address_components="1">
+                <slider_representation>
+                    <press_action name="DimmerSet"></press_action>
+                    <valueSource name="DimmerLevel">
+                        <unique_identifier name="DeviceNumber" address_component="1" format="%d"></unique_identifier>
+                    </valueSource>
+                </slider_representation>
+                <group_representation>
+                    <push_button_representation>
+                        <release_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="0"></argument>
+                        </release_action>
+                        <osd_press_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="0"></argument>
+                        </osd_press_action>
+                    </push_button_representation>
+                    <push_button_representation>
+                        <release_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="20"></argument>
+                        </release_action>
+                        <osd_press_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="20"></argument>
+                        </osd_press_action>
+                    </push_button_representation>
+                    <push_button_representation>
+                        <release_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="40"></argument>
+                        </release_action>
+                        <osd_press_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="40"></argument>
+                        </osd_press_action>
+                    </push_button_representation>
+                    <push_button_representation>
+                        <release_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="60"></argument>
+                        </release_action>
+                        <osd_press_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="60"></argument>
+                        </osd_press_action>
+                    </push_button_representation>
+                    <push_button_representation>
+                        <release_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="80"></argument>
+                        </release_action>
+                        <osd_press_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="80"></argument>
+                        </osd_press_action>
+                    </push_button_representation>
+                    <push_button_representation>
+                        <release_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="100"></argument>
+                        </release_action>
+                        <osd_press_action name="DimmerSet">
+                            <argument name="DimmerLevel" value="100"></argument>
+                        </osd_press_action>
+                    </push_button_representation>
+                </group_representation>
+                <toggle_button_representation>
+                    <press_action name="DimmerSet">
+                        <argument name="DimmerLevel" value="100"></argument>
+                    </press_action>
+                    <toggle_action name="DimmerSet">
+                        <argument name="DimmerLevel" value="0"></argument>
+                    </toggle_action>
+                    <osd_press_action name="DimmerSet">
+                        <argument name="DimmerLevel" value="100"></argument>
+                    </osd_press_action>
+                    <osd_hold_action name="DimmerSet">
+                        <argument name="DimmerSet" value="0"></argument>
+                    </osd_hold_action>
+                </toggle_button_representation>
+                <query_status_with_action name="RequestDimmerStatus" period_ms="0">
+                    <with_arg name="Address1" address_component="1" format="%d"></with_arg>
+                </query_status_with_action>
+                <query_status_with_action name="RequestDimmerStatus" period_ms="10000">
+                    <with_arg name="Address1" address_component="1" format="%d"></with_arg>
+                </query_status_with_action>
+            </entity>
+            <entity name="Switch" address_components="1">
+                <toggle_button_representation>
+                    <press_action name="SwitchOn"></press_action>
+                    <toggle_action name="SwitchOff"></toggle_action>
+                    <toggleOnUsingState name="IsSwitchOn">
+                        <unique_identifier name="Address1" address_component="1" format="%d"></unique_identifier>
+                    </toggleOnUsingState>
+                </toggle_button_representation>
+                <query_status_with_action name="RequestDimmerStatus" period_ms="0">
+                    <with_arg name="Address1" address_component="1" format="%d"></with_arg>
+                </query_status_with_action>
+                <query_status_with_action name="RequestDimmerStatus" period_ms="10000">
+                    <with_arg name="Address1" address_component="1" format="%d"></with_arg>
+                </query_status_with_action>
+            </entity>
+        </resource_component_actions>
+        <custom_component_actions>
+            <action name="RequestLockStatus">
+                <action_argument name="DeviceNumber" note="This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="DeviceNumber" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="RequestDimmerStatus">
+                <action_argument name="Address1" note="This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="Address1" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="RequestHVACStatus">
+                <action_argument name="ThermostatAddress" note="This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="ThermostatAddress" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="LockDoor">
+                <action_argument name="DeviceNumber" note="This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="DeviceNumber" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;serviceId=urn:micasaverde-com:serviceId:DoorLock1&amp;action=SetTarget&amp;newTargetValue=1</parameter>
+                        </parameter_list>
+                        <delay ms_delay="2000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="DeviceNumber" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="UnlockDoor">
+                <action_argument name="DeviceNumber" note="This can be found on the Vera2 webpage under dashboard > devices > wrench icon > settings tab  > Device #"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_action&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="DeviceNumber" parameter_data_type="character"></parameter>
+                            <parameter parameter_data_type="character">&amp;serviceId=urn:micasaverde-com:serviceId:DoorLock1&amp;action=SetTarget&amp;newTargetValue=0</parameter>
+                        </parameter_list>
+                        <delay ms_delay="2000"></delay>
+                    </command>
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <parameter_list>
+                            <parameter action_argument="DeviceNumber" parameter_data_type="character"></parameter>
+                        </parameter_list>
+                        <delay ms_delay="1000"></delay>
+                    </command>
+                </command_interface>
+            </action>
+        </custom_component_actions>
+    </logical_component>
+</component>
