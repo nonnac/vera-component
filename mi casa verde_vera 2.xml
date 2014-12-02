@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Mi Casa Verde" model="Vera 2" alias="Mi Casas Verde Vera 3, Mi Casa Verde VeraLite" device_class="Security_system" unique_identifier="none" minimum_component_engine_version="0" rpm_xml_version="11.11">
+<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Mi Casa Verde" model="Vera 2" alias="Mi Casas Verde Vera 3, Mi Casa Verde VeraLite" device_class="Security_system" unique_identifier="none" minimum_component_engine_version="0" rpm_xml_version="16.11">
     <notes>
         The user based login service of this profile is for a Kwikset lock controlled by the Mi Casa Verde Vera 2, it may work for other locks (schlage) as well.
 
@@ -336,22 +336,20 @@
                 <data type="character" terminator_type="character" terminator=" ">
                     <update state="DeviceNumber" type="string"></update>
                 </data>
-                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:Dimming1&quot; variable=&quot;Status&quot; value=&quot;">
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:SwitchPower1&quot; variable=&quot;Status&quot; value=&quot;">
                     <update state="ThrownOut" type="string"></update>
                 </data>
                 <data type="character" terminator_type="character" terminator="&quot;">
                     <data_map match_required="yes">
                         <map key="0">
-                          <update state="IsDimmerOn" type="boolean">false</update>
                           <update state="IsSwitchOn" type="boolean">false</update>
                         </map>
                         <map key="1">
-                          <update state="IsDimmerOn" type="boolean">true</update>
                           <update state="IsSwitchOn" type="boolean">true</update>
                         </map>
                     </data_map>
                 </data>
-                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:Dimming1&quot; variable=&quot;LoadLevelTarget&quot; value=&quot;">
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:Dimming1&quot; variable=&quot;LoadLevelStatus&quot; value=&quot;">
                     <update state="ThrownOut" type="string"></update>
                 </data>
                 <data type="character" terminator_type="character" terminator="&quot;">
