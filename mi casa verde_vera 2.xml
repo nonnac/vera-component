@@ -1,53 +1,53 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Mi Casa Verde" model="Vera 2" alias="Mi Casas Verde Vera 3, Mi Casa Verde VeraLite" device_class="Security_system" unique_identifier="none" minimum_component_engine_version="0" rpm_xml_version="1.11">
-    <notes> 
+<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Mi Casa Verde" model="Vera 2" alias="Mi Casas Verde Vera 3, Mi Casa Verde VeraLite" device_class="Security_system" unique_identifier="none" minimum_component_engine_version="0" rpm_xml_version="11.11">
+    <notes>
         The user based login service of this profile is for a Kwikset lock controlled by the Mi Casa Verde Vera 2, it may work for other locks (schlage) as well.
-        
+
         Vera 2 Setup:
         Go to the IP Address of the Vera 2 (192.168.81.1 default) to access the Vera2 webpage
         You can connect to the Vera2 through its ad hoc wireless network with network name vera_######
         You will have to configure and connect Eth1 port of the Vera 2 to the network with Savant for control
-        
+
         Device Numbers given by the Vera 2 are used for the Security Data Tables in Blueprint
         This can be found on the Vera2 webpage under dashboard > devices > "wrench icon" > settings tab  > Device #
-        
+
             Notes on z-wave pairing kwikset lock with the Vera 2
             http://youtu.be/z4NlUY3quGs
-            
-            1. Put vera2 into include mode, there is a wizard on the vera2 webpage 
+
+            1. Put vera2 into include mode, there is a wizard on the vera2 webpage
             2. Bring the Vera 2 and the Kwikset lock within 3 feet of each other
-            
+
             --------------------KWIKSET Setup ---------------
             3. Remove the battery in the kwikset lock
             4. Press the large program button 3 times
             5. Reinsert the battery in the kwikset lock
             6. Press the upper left button on the kwikset lock
-            
+
             7. The lock should be recognized on the vera2 webpage
             --------------------SCHLAGE Setup ---------------
-            
-            2. Bring the Vera 2 and the Schlage lock within 3 feet of each other 
+
+            2. Bring the Vera 2 and the Schlage lock within 3 feet of each other
             3. Put Schlage lock into enrollment mode
                 - enter programming code 6 digits
                 - wait for 3 lights and 3 beeps
                 - press schlage + 0
                 - schlage blinking green success
-                
+
             ------------------Add z-wave with Vera 2 Already setup ------------
             1. Go To add/Remove devices -> Zwave -> Next
             2. Scroll Down to ANy Type of devices you can bring close -> Go
             3. Z-Wave light will begin to blink
             4. Z-Wave light flashes rapdily when the device is sucessfully added.
-                 
-         
+
+
          Blueprint Setup:
          Before testing this profile, verify that the locks are already on the Vera 2 z-wave network and controllable through the Vera 2 web interface.
          The IP address on the wire in BP should be the IP address of the Vera 2 eth1 port.
-         
+
          This profile will generate a user based login security service to populate some UI screen with default control and feedback.
          There should be a partition and a zone for each lock using the device number from the vera 2 as the address for the partition and zone number.
          You could however just have 1 partition per lock with no zones.
-         
+
 		====================== Change Log ==================
 		Version: 1.11 Change: Added CurrentPartitionArmingStatus  Risk: Low Importance: Helpful
 		Version: 1.10 Change: Added Temp Sensor Support  Risk: Low Importance: Helpful
@@ -336,16 +336,18 @@
                 <data type="character" terminator_type="character" terminator=" ">
                     <update state="DeviceNumber" type="string"></update>
                 </data>
-                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:SwitchPower1&quot; variable=&quot;Status&quot; value=&quot;">
+                <data type="character" terminator_type="character" terminator="service=&quot;urn:upnp-org:serviceId:Dimming1&quot; variable=&quot;Status&quot; value=&quot;">
                     <update state="ThrownOut" type="string"></update>
                 </data>
                 <data type="character" terminator_type="character" terminator="&quot;">
                     <data_map match_required="yes">
                         <map key="0">
-                            <update state="IsSwitchOn" type="boolean">false</update>
+                          <update state="IsDimmerOn" type="boolean">false</update>
+                          <update state="IsSwitchOn" type="boolean">false</update>
                         </map>
                         <map key="1">
-                            <update state="IsSwitchOn" type="boolean">true</update>
+                          <update state="IsDimmerOn" type="boolean">true</update>
+                          <update state="IsSwitchOn" type="boolean">true</update>
                         </map>
                     </data_map>
                 </data>
@@ -988,14 +990,14 @@
                             <parameter parameter_data_type="character">&amp;action=SetLoadLevelTarget&amp;serviceId=urn:upnp-org:serviceId:Dimming1&amp;newLoadlevelTarget=</parameter>
                             <parameter action_argument="DimmerLevel" parameter_data_type="character"></parameter>
                         </parameter_list>
-                        <delay ms_delay="20"></delay>
+                        <delay ms_delay="2000"></delay>
                     </command>
                     <command response_required="no">
-                        <command_string type="character" http_request_type="GET">data_request?id=status&amp;output_format=xml&amp;DeviceNum=</command_string>
+                        <command_string type="character" http_request_type="GET">data_request?id=lu_status&amp;output_format=xml&amp;DeviceNum=</command_string>
                         <parameter_list>
                             <parameter action_argument="Address1" parameter_data_type="character"></parameter>
                         </parameter_list>
-                        <delay ms_delay="10"></delay>
+                        <delay ms_delay="1000"></delay>
                     </command>
                 </command_interface>
             </action>
@@ -1069,6 +1071,9 @@
                     <osd_hold_action name="DimmerSet">
                         <argument name="DimmerSet" value="0"></argument>
                     </osd_hold_action>
+                    <toggleOnUsingState name="IsSwitchOn">
+                      <unique_identifier name="Address1" address_component="1" format="%d"></unique_identifier>
+                    </toggleOnUsingState>
                 </toggle_button_representation>
                 <query_status_with_action name="RequestDimmerStatus" period_ms="0">
                     <with_arg name="Address1" address_component="1" format="%d"></with_arg>
