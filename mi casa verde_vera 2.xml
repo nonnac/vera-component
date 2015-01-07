@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Mi Casa Verde" model="Vera 2" alias="Mi Casas Verde Vera 3, Mi Casa Verde VeraLite" device_class="Security_system" unique_identifier="none" minimum_component_engine_version="0" rpm_xml_version="17.11">
     <notes>
-        The user based login service of this profile is for a Kwikset lock controlled by the Mi Casa Verde Vera 2, it may work for other locks (schlage) as well.
+        The users based login service of this profile is for a Kwikset lock controlled by the Mi Casa Verde Vera 2, it may work for other locks (schlage) as well.
 
         Vera 2 Setup:
         Go to the IP Address of the Vera 2 (192.168.81.1 default) to access the Vera2 webpage
